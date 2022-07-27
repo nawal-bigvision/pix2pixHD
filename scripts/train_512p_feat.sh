@@ -1,2 +1,2 @@
-### Adding instances and encoded features
-python train.py --name label2city_512p_feat --instance_feat
+### Adding instances and encoded features     --continue_train
+python train.py --name 360booth_image_to_image_512p_feat --instance_feat --dataroot ./datasets/360booth_centered --label_nc 0 --verbose --niter 50 --niter_decay 50  --resize_or_crop scale_width_and_crop --loadSize 1024 --fineSize 1024 --gpu_ids "0,1,2,3,4,5,6,7" --batchSize 56
