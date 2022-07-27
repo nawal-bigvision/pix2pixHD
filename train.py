@@ -5,8 +5,15 @@ import torch
 from torch.autograd import Variable
 from collections import OrderedDict
 from subprocess import call
-import fractions
-def lcm(a,b): return abs(a * b)/fractions.gcd(a,b) if a and b else 0
+
+from util.util import iprint
+
+def compute_gcd(x, y):
+    while(y):
+        x, y = y, x % y
+    return abs(x)
+
+def lcm(a,b): return abs(a * b)/compute_gcd(a,b) if a and b else 0
 
 from options.train_options import TrainOptions
 from data.data_loader import CreateDataLoader
@@ -39,7 +46,9 @@ dataset_size = len(data_loader)
 print('#training images = %d' % dataset_size)
 
 model = create_model(opt)
+iprint("model created")
 visualizer = Visualizer(opt)
+iprint("visualizer created")
 if opt.fp16:    
     from apex import amp
     model, [optimizer_G, optimizer_D] = amp.initialize(model, [model.optimizer_G, model.optimizer_D], opt_level='O1')             
@@ -48,11 +57,11 @@ else:
     optimizer_G, optimizer_D = model.module.optimizer_G, model.module.optimizer_D
 
 total_steps = (start_epoch-1) * dataset_size + epoch_iter
-
+iprint("total steps: ", total_steps)
 display_delta = total_steps % opt.display_freq
 print_delta = total_steps % opt.print_freq
 save_delta = total_steps % opt.save_latest_freq
-
+iprint("starting training")
 for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
     epoch_start_time = time.time()
     if epoch != start_epoch:
@@ -68,7 +77,7 @@ for epoch in range(start_epoch, opt.niter + opt.niter_decay + 1):
 
         ############## Forward Pass ######################
         losses, generated = model(Variable(data['label']), Variable(data['inst']), 
-            Variable(data['image']), Variable(data['feat']), infer=save_fake)
+            Variable(data['image']), Variable(data['feat']), infer=save_fake, booth_image=Variable(data['booth_image']))
 
         # sum per device losses
         losses = [ torch.mean(x) if not isinstance(x, int) else x for x in losses ]
