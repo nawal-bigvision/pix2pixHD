@@ -52,10 +52,15 @@ class AlignedDataset(BaseDataset):
             transform_B = get_transform(self.opt, params)      
             B_tensor = transform_B(B)
 
+        booth_image = Image.open(os.path.join(self.opt.dataroot, "booth_checker_box.png")).convert('RGB')
+        transform_booth = get_transform(self.opt, params)      
+        booth_image_tensor = transform_booth(booth_image)
+
+
         ### if using instance maps        
         if not self.opt.no_instance:
             inst_path = self.inst_paths[index]
-            inst = Image.open(inst_path)
+            inst = Image.open(inst_path).convert('RGB')
             inst_tensor = transform_A(inst)
 
             if self.opt.load_features:
@@ -65,7 +70,7 @@ class AlignedDataset(BaseDataset):
                 feat_tensor = norm(transform_A(feat))                            
 
         input_dict = {'label': A_tensor, 'inst': inst_tensor, 'image': B_tensor, 
-                      'feat': feat_tensor, 'path': A_path}
+                      'feat': feat_tensor, 'path': A_path, 'booth_image': booth_image_tensor}
 
         return input_dict
 
