@@ -123,7 +123,7 @@ class Pix2PixHDModel(BaseModel):
         # get edges from instance map
         if not self.opt.no_instance:
             inst_map = inst_map.data.cuda()
-            edge_map = self.get_edges(inst_map)
+            edge_map = self.get_edges(inst_map)[:,:1,:,:]
             input_label = torch.cat((input_label, edge_map), dim=1)         
         input_label = Variable(input_label, volatile=infer)
 
@@ -149,14 +149,15 @@ class Pix2PixHDModel(BaseModel):
         else:
             return self.netD.forward(input_concat)
 
-    def forward(self, label, inst, image, feat, infer=False):
+    def forward(self, label, inst, image, feat, infer=False, booth_image=None):
         # Encode Inputs
         input_label, inst_map, real_image, feat_map = self.encode_input(label, inst, image, feat)  
 
         # Fake Generation
         if self.use_features:
             if not self.opt.load_features:
-                feat_map = self.netE.forward(real_image, inst_map)                     
+                booth_image = Variable(booth_image.data.cuda())
+                feat_map = self.netE.forward(booth_image, inst_map)
             input_concat = torch.cat((input_label, feat_map), dim=1)                        
         else:
             input_concat = input_label
@@ -219,7 +220,7 @@ class Pix2PixHDModel(BaseModel):
     def sample_features(self, inst): 
         # read precomputed feature clusters 
         cluster_path = os.path.join(self.opt.checkpoints_dir, self.opt.name, self.opt.cluster_path)        
-        features_clustered = np.load(cluster_path, encoding='latin1').item()
+        features_clustered = np.load(cluster_path, encoding='latin1', allow_pickle=True).item()
 
         # randomly sample from the feature clusters
         inst_np = inst.cpu().numpy().astype(int)                                      
