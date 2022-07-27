@@ -74,7 +74,7 @@ def __scale_width(img, target_width, method=Image.BICUBIC):
         return img    
     w = target_width
     h = int(target_width * oh / ow)    
-    return img.resize((w, h), method)
+    return img.resize((w, 768), method)
 
 def __crop(img, pos, size):
     ow, oh = img.size
