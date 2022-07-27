@@ -1,4 +1,11 @@
 from __future__ import print_function
+
+import sys
+INFO = True
+def iprint(*args):
+    if INFO:
+        print("INFO:: ", *args, file=sys.stdout)
+
 import torch
 import numpy as np
 from PIL import Image
